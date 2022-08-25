@@ -12,8 +12,6 @@ var ctxMy;
 var ctxEn;
 var cell;
 
-var socket;
-
 var nameRoom;
 var posTarget = {
     x: 0,
@@ -28,30 +26,9 @@ window.onload = function () {
     PrintMap(ctxMy);
     PrintMap(ctxEn);
     PrintTarget();
-    var a = $('body');
-    //a[0].style.backgroundImage = "url(https://zn.ua/img/forall/u/0/-1/users/Dec2015/136472.jpg)";
-    a[0].style.backgroundSize = "cover";
-    SetNameRoom();
-    nameRoom = "MyTestRoom";
-    //socket = new WebSocket("wss://10.1.44.158:8080");
-    //socket.onopen = function (event) {
-    //    //var buff = new ArrayBuffer();
-    //    socket.send("Привет!");        
-    //}
-    ////функция для приёма сообщений
-    //socket.onmessage = function (event) {
-    //    Status('OnMessage');
-    //    alert(event.data);
-    //}
-}
-
-function SetNameRoom() {
-    urlParams = new URLSearchParams(window.location.search);
-    nameRoom = urlParams.get('nameRoom');
 }
 
 function InitConsts() {
-
     Canvases.My = $("#can1");
     Canvases.En = $("#can2");
 
@@ -82,14 +59,16 @@ function SetShip() {
     for (var i = 0; i < MyShips.length; i++) {
         var item = MyShips[i];
         if (item.pX == posTarget.x && item.pY == posTarget.y) {
-            MyShips.forEach(function (item, i, arr) {
-                if (item.pX == posTarget.x && item.pY == posTarget.y) {
-                    MyShips.splice(i, 1);
-                }
-            })
+            //MyShips.forEach(function (item, i, arr) {
+            //    if (item.pX == posTarget.x && item.pY == posTarget.y) {
+            //        MyShips.splice(i, 1);
+            //    }
+            //})
+            MyShips.splice(i, 1);
             ClearAllCells(ctxMy);
             PrintTarget();
-            PrintShips();
+            PrintShips(ctxMy, MyShips);
+            console.log(MyShips);
             return false;
         }
     }
@@ -99,7 +78,8 @@ function SetShip() {
     MyShips.push({ pX, pY, TypeC: 1 });
     ClearAllCells(ctxMy);
     PrintTarget();
-    PrintShips();
+    PrintShips(ctxMy, MyShips);
+    console.log(MyShips);
 }
 
 function MoveTarget(dir) {
@@ -130,6 +110,36 @@ function MoveTarget(dir) {
     if (currCtx != null) {
         PrintTarget();
     }
+}
+
+function ShotInCell(where, x, y, type) {
+    var currCtxLoc;
+    var currShipsLoc;
+    if (where == 1) {
+        currCtxLoc = ctxMy;
+        ships = MyShips;
+
+        //проверка на попадание по нашему кораблю
+        for (var i = 0; i < ships.length; i++) {
+            var item = ships[i];
+            if (item.pX == x && item.pY == y) {
+                item.TypeC = 2;
+                ClearAllCells(ctxMy);
+                //PrintTarget();
+                PrintShips(ctxMy, ships);
+                console.log(MyShips);
+                return false;
+            }
+        }
+        //в остальных случаях добавляем ячейка с промахом
+    } else {
+        currCtxLoc = ctxEn;
+        currCtxLoc = EnShips;
+    }
+
+    ships.push({ pX, pY, TypeC: type});
+
+    PrintShips(currCtxLoc,);
 }
 
 function PrintTarget() {
@@ -165,9 +175,8 @@ function AddEvent() {
                 direction = "down";
                 break;
             case 32: // Space
-                socket.send("Привет!");
                 if (GameStarted && MyTurn) {
-                    Shoot();
+                    //Shoot();
                 } else {
                     SetShip();
                 }
@@ -175,29 +184,19 @@ function AddEvent() {
         }
         if (direction != null) {
             MoveTarget(direction);
-            PrintShips();
+            PrintShips(GetCurrentCtx(), GetCurrentShips());
         }
     });
 }
 
-function Shoot() {
-    var a = 200;
-    ClearAllCells();
-}
-
-function InitGame(a) {
+function InitGame() {
     var b = $('#Start')[0];
-
-    ClearAllCells(ctxMy);
-    PrintShips();
-    if (a.StartGame == true) {
-        posTarget.x = 0;
-        posTarget.y = 0;
-        GameStarted = true;
-        b.disabled = true;
-        b.hidden = true;
-        PrintTarget();
-    }
+    posTarget.x = 0;
+    posTarget.y = 0;
+    GameStarted = true;
+    b.disabled = true;
+    b.hidden = true;
+    PrintTarget();    
 }
 
 function ClearAllCells(ctx) {
@@ -212,21 +211,11 @@ function ClearCell(x, y, ctx) {
     ctx.clearRect(x * cellSize + 2, y * cellSize + 2, cellSize - 4, cellSize - 4);
 }
 
-function PrintShips() {
-
-    //Рисуем
-    
-    var currCtx = GetCurrentCtx();
-    var Ships;
-    if (GameStarted) {
-        Ships = EnShips;
-    } else {
-        Ships = MyShips;
-    }
-
+function PrintShips(ctx, Ships) {
+    //Рисуем    
     for (var i = 0; i < Ships.length; i++) {
         var item = Ships[i];
-        PrintOneShip(item, currCtx);
+        PrintOneShip(item, ctx);
     }
 }
 
@@ -235,6 +224,14 @@ function GetCurrentCtx() {
         return ctxEn;
     } else {
         return ctxMy;
+    }
+}
+
+function GetCurrentShips() {
+    if (GameStarted) {
+        return EnShips;
+    } else {
+        return MyShips;
     }
 }
 
@@ -298,69 +295,8 @@ function PrintOneShip(item, currCtx) {
     }
 }
 
-function SendMyMap() {
-    if (GameStarted) {
-        return false;
-    }
-    var q = JSON.stringify({ MyFleet: MyShips, NameRoom: nameRoom });
-    $.ajax({
-        type: "POST",
-        url: "/WebService.asmx/SendMyMap",
-        data: q,
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        success: function (jObj) {
-            var a = jQuery.parseJSON(jObj.d);
-            CheckError(a);
-            InitGame(a);
-        },
-        failure: function (response) {
-            alert(response.d);
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-
-        }
-    });    
-}
-
 function CheckError(json) {
     if (json.error != "" && json.error != undefined) {
         alert(json.error);
     }
-}
-
-function Start() {
-    var wsImpl = window.WebSocket || window.MozWebSocket;
-    var form = document.getElementById('sendForm');
-    var input = document.getElementById('sendText');
-
-    alert("Connessione...");
-
-    // create a new websocket and connect
-    window.ws = new wsImpl('@Percorsi.IndirizzoSocket');
-
-    alert("conn");
-
-    // when the connection is established, this method is called
-    ws.onopen = function () {
-        alert("Connessione aperta");
-        var openJson = {
-            "Id": "@Model.accountCorrente.Id",
-            "type": "Identificazione"
-        };
-
-        alert("send");
-        ws.send(stringify(openJson));
-    };
-    // when the connection is closed, this method is called
-    ws.onclose = function () {
-        alert("Connessione chiusa");
-    }
-    // when data is comming from the server, this metod is called
-    ws.onmessage = function (val) {
-        if (confirm("Hai ricevuto un nuovo messaggio!\nPremi ok per visualizzarlo.")) {
-            window.location("/Annunci/Chat/" + val);
-        } else { }
-    };
-
 }

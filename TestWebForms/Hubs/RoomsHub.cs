@@ -20,7 +20,7 @@ namespace TestWebForms.Hubs
                 if (nameNewRoom.Length > 3 && nameNewRoom.Length <= 30)
                 {
                     Container.Rooms.Add(new Models.Room(nameNewRoom));
-                    SendRoomToAllExceptUser(Context.ConnectionId);
+                    SendRoomToAllUser();
                     Connect(nameNewRoom);
                 }
             }
@@ -39,18 +39,24 @@ namespace TestWebForms.Hubs
                 var newUser = new SheepsUser { ConnectionId = id, NameRoom = roomName, Ready = false };
                 var room = Container.Rooms.Find(x => x.Name == roomName);
                 Container.Users.Add(newUser);
+                if (room == null)
+                {
+                    return;
+                }
                 // Если вошёл первый игрок в комнату
                 if (room.User1 == null)
                 {
                     room.User1 = newUser;
-                    Clients.Caller.onConnected(1, roomName);
+                    Clients.Caller.onConnected(1, roomName, id);
                 }
-                else if (room.User1.ConnectionId != Context.ConnectionId) //если вошёл второй игрок
+                else if (room.User2 == null) //если вошёл второй игрок
                 {
-                    Clients.User(room.User1.ConnectionId).enemyConnected();//сказать первому игроку что его соперник вошёл в комнату
-                    Clients.Caller.onConnected(2, roomName);
+                    room.User2 = newUser;
+                    room.HasUser2 = true;
+                    Clients.Client(room.User1.ConnectionId).enemyConnected();//сказать первому игроку что его соперник вошёл в комнату
+                    Clients.Caller.onConnected(2, roomName, id);
                 }
-                SendRoomToAllExceptUser(Context.ConnectionId);
+                SendRoomToAllUser();
                 // Посылаем сообщение всем пользователям, кроме текущего
                 //Clients.AllExcept(id).onNewUserConnected(id, userName);
             }
@@ -59,16 +65,9 @@ namespace TestWebForms.Hubs
         /// <summary>
         /// Выдать всем пользователям новый список комнат, которые ожидают второго игрока
         /// </summary>
-        public void SendRoomToAllExceptUser(string exceptId = null)
+        public void SendRoomToAllUser()
         {
-            if (exceptId == null)
-            {
-                Clients.All.getingRooms(jsonListNames());
-            }
-            else
-            {
-                Clients.AllExcept(exceptId).getingRooms(jsonListNames());
-            }            
+            Clients.All.getingRooms(jsonListNames());         
         }
 
         /// <summary>
@@ -82,7 +81,7 @@ namespace TestWebForms.Hubs
         private string jsonListNames()
         {
             dynamic result = new System.Dynamic.ExpandoObject();
-            List<Models.Room> rooms = Container.Rooms.FindAll(x => x.User2 == null);
+            List<Models.Room> rooms = Container.Rooms.FindAll(x => x.HasUser2 == false);
             var listNamesRooms = Support.ListRoomsToListNameRooms(rooms);
             result.GridsData = Support.ToDataTable(listNamesRooms, "Название комнаты");
             return App.Support.ConvertToJson(result);

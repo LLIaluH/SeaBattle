@@ -19,6 +19,10 @@
             Готов!
         </button>
     </div>
+
+    <div id="readyEnemy" class="enemyNoReady">
+        <p>Соперник не готов</p>
+    </div>
     <!--Ссылка на автоматически сгенерированный скрипт хаба SignalR -->
     <script src="/Scripts/jquery.signalR-2.4.3.min.js"></script>
     <!--Ссылка на автоматически сгенерированный скрипт хаба SignalR -->

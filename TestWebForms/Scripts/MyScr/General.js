@@ -47,3 +47,7 @@ function isEmpty(str) {
 
     return false;
 }
+
+//function addParamsInUrl(url, key, param) {
+//    return url
+//}

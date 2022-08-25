@@ -1,38 +1,40 @@
 ﻿var roomName;
-$(function () {
-    var _SH = $.connection.roomsHub;
-    roomName = (new URL(document.location)).searchParams.get("roomName");
+var userId;
 
-    _SH.client.enemyConnected = function () {
+$(function () {
+    var _SH = $.connection.sheepsHub;
+    roomName = (new URL(document.location)).searchParams.get("roomName");
+    userId = (new URL(document.location)).searchParams.get("userId");
+
+    _SH.client.enemyConnected = function (ready) {
         alert("Соперник подключился!");
     }
 
-    _SH.client.setEnemyIsReady = function (ready){
+    _SH.client.setEnemyIsReady = function () {
+        $('#readyEnemy').empty();
+        $('#readyEnemy').toggleClass('enemyNoReady enemyReady');
+        $('#readyEnemy').append('<p>Соперник готов к бою!</p>')
+    }
+
+    _SH.client.iAmReady = function (ready) {
 
     }
 
+    _SH.client.outRoomError = function (message) {
+        alert(message);
+        window.location.href = '/Rooms';
+    }
+
+    _SH.client.sendErrorMap = function (errors) {
+        alert(errors);
+    }
+
     $.connection.hub.start().done(function () {
-        $('#Create').click(function () {
-            var nameNewRoom = $('#Name').val();
-            if (nameNewRoom.length > 3 && nameNewRoom.length <= 30) {
-                _SH.server.createRoom(nameNewRoom);
-            } else {
-                alert("Название комнаты должно быть не короче 4 и не длиннее 30 символов!");
-            }
+        $('#Start').click(function () {
+            var fleet = JSON.stringify( MyShips );
+            _SH.server.tryReady(fleet);
         });
 
-        $("#Refrash").click(function () {
-            StartSpiner("Tab1");
-            _SH.server.getRooms();
-        });
-
-        $('#ConnectBtn').click(function () {
-            if (isEmpty(CurrentNameRoom)) {
-                alert("Выберите комнату из списка или создайте новую комнату!");                
-            } else {
-                _SH.server.connect(CurrentNameRoom);
-            }
-        });
+        _SH.server.connect(roomName, userId);
     });
-    var aaaa = 1;
 })

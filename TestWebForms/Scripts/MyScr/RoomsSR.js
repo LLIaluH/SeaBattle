@@ -4,15 +4,19 @@
         var a = jQuery.parseJSON(jObj);
         CheckError(a);
         StopSpiner("Tab1");
-        FillGrid("#Tab1", a.GridsData, function (nameGrid, data) { CurrentNameRoom = data["Название комнаты"];}, { layout: "fitColumns" });
+        if (a.GridsData.length > 0) {
+            FillGrid("#Tab1", a.GridsData, function (nameGrid, data) { CurrentNameRoom = data["Название комнаты"]; }, { layout: "fitColumns" });
+        } else {
+            $("#Tab1").empty();
+        }
     }
 
     _SH.client.hasRoom = function () {
         alert("Комната с таким названием уже существует!");
     }
 
-    _SH.client.onConnected = function (type, roomName) {
-        window.location.href = '/GameProc?roomName=' + roomName;
+    _SH.client.onConnected = function (type, roomName, userId) {
+        window.location.href = '/GameProc?roomName=' + roomName + '&userId=' + userId;
     }
 
     $.connection.hub.start().done(function () {

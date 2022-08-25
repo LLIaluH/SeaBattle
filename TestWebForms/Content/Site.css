@@ -50,6 +50,16 @@ textarea {
     z-index: 10000;
 }
 
+.enemyReady {
+    font-size: 2em;
+    color: forestgreen;
+}
+
+.enemyNoReady {
+    font-size: 2em;
+    color: red;
+}
+
 /* Safari */
 @-webkit-keyframes spin {
     0% {

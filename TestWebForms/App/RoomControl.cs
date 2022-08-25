@@ -12,75 +12,23 @@ namespace TestWebForms.App
     {
         List<Cell> CellsChecked = new List<Cell>();
 
-        public string SendMyMap(object MyFleet, string NameRoom)
+        public string CheckMyMap(List<Cell> Cells)
         {
-            dynamic result = new System.Dynamic.ExpandoObject();
-
-            List<Cell> Cells = ConvertObjToList(MyFleet);
-            Cells = SortCells(Cells);
-            string Error;
-            Error = CheckCountCell(Cells) ? "Неверное количество палуб! " : "";
-            Error += CheckDiagonal(Cells) ? "Неверно заполнено поле! " : "";
-            Error += CheckCountShipOnType(Cells) ? "Неверно заполнено поле! " : "";
-            if (!(Error.Length > 1))
-            {
-                //Error += SaveMap(Cells, NameRoom) ? "" : "Карта не была сохранена! ";
-            }
-            if (!(Error.Length > 1))
-            {
-                result.StartGame = true;
-            }
-            result.error = Error;
-            return Support.ConvertToJson(result);
+            string error = "";
+            error = CheckCountCell(Cells) ? "Неверное количество палуб!\n" : "";
+            error += CheckDiagonal(Cells) ? "Корабли не могут стоять вплотную!\n" : "";
+            string configurationFleet = "";
+            error += CheckCountShipOnType(Cells, out configurationFleet) ? "Должно быть 4 однопалубника, 3 двухпалубника, 2 трёхпалубника и 1 четырёхпалубник!\n" +
+                "А у вас: " + configurationFleet : "";            
+            return error;
         }
 
-        private List<Cell> ConvertObjToList(object MyFleet)
+        public static List<Cell> ConvertObjToList(string MyFleet)
         {
-            List<Cell> Cells = new List<Cell>();
-            Regex regex = new Regex(@"\d+", RegexOptions.Compiled);
-            try
-            {
-                IEnumerable enumerable1 = MyFleet as IEnumerable;
-                if (enumerable1 != null)
-                {
-                    int id = 0;
-                    foreach (object cell in enumerable1)
-                    {
-                        Cell c = new Cell();
-                        IEnumerable enumerable2 = cell as IEnumerable;
-                        foreach (var property in enumerable2)
-                        {
-                            string prop = property.ToString();
-                            var tempStringValue = regex.Match(prop);
-                            int value = Convert.ToInt32(tempStringValue.Value);
-                            if (prop.Contains("pX"))
-                            {
-                                c.pX = value;
-                            }
-                            if (prop.Contains("pY"))
-                            {
-                                c.pY = value;
-                            }
-                            if (prop.Contains("TypeC"))
-                            {
-                                c.TypeC = value;
-                            }
-                        }
-                        c.id = id;
-                        Cells.Add(c);
-                        id++;
-                    }
-                }
-                return Cells;
-            }
-            catch (Exception ex)
-            {
-                Logs.LogWriteError(ex.Message);
-                throw;
-            }
+            return JsonConvert.DeserializeObject<List<Cell>>(MyFleet);
         }
 
-        private List<Cell> SortCells(List<Cell> cells)
+        public static List<Cell> SortCells(List<Cell> cells)
         {
             List<Cell> sortedCells = cells;
             for (int i = 0; i < sortedCells.Count; i++)
@@ -138,8 +86,9 @@ namespace TestWebForms.App
             return false;
         }
 
-        private bool CheckCountShipOnType(List<Cell> cells)
+        private bool CheckCountShipOnType(List<Cell> cells, out string conf)
         {
+            conf = "";
             int four = 0;
             int three = 0;
             int two = 0;
@@ -198,6 +147,7 @@ namespace TestWebForms.App
                 }
 
             }
+            conf = $"{one} одно, {two} двух, {three} трёх и {four} четырёх... палубники";
             if (four == 1 && three == 2 && two == 3 && one == 4)
             {
                 return false;
