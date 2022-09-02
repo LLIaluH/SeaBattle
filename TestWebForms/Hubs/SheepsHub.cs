@@ -60,7 +60,10 @@ namespace TestWebForms.Hubs
                         if ((bool)(room.User2.ConnectionId.Equals(user.ConnectionId)))
                         {
                             Clients.Client(room.User1.ConnectionId).enemyConnected(room.User1.Ready);
-                            Clients.Caller.setEnemyIsReady();
+                            if (room.User1.Ready)
+                            {
+                                Clients.Caller.setEnemyIsReady();
+                            }
                         }
                     }
                 }
