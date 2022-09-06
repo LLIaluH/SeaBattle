@@ -15,9 +15,9 @@ namespace TestWebForms.Hubs
         public void TryReady(string MyFleet)
         {
             var currUser = Storage.Container.Users.Find(x => x.ConnectionId == Context.ConnectionId);
-            if (currUser.Ready)            
+            if (currUser.Ready)
                 return;
-            
+
             RoomControl roomControl = new RoomControl();
             List<Cell> Cells = RoomControl.ConvertObjToList(MyFleet);
             Cells = RoomControl.SortCells(Cells);
@@ -36,10 +36,33 @@ namespace TestWebForms.Hubs
                     if (room.User1 == currUser && room.User2 != null)
                     {
                         Clients.Client(room.User2.ConnectionId).setEnemyIsReady();
+                        tryStartGame(room);
                     }
                     else if (room.User2 == currUser && room.User1 != null)
                     {
                         Clients.Client(room.User1.ConnectionId).setEnemyIsReady();
+                        tryStartGame(room);
+                    }
+                }
+            }
+        }
+
+        private void tryStartGame(TestWebForms.Models.Room room)
+        {
+            if (room != null && room.User1 != null && room.User2 != null)
+            {
+                if (room.User1.Ready && room.User2.Ready)
+                {
+                    Random r = new Random();
+                    if (r.Next(0, 2) == 1)
+                    {
+                        Clients.Client(room.User1.ConnectionId).startGame("FirstStep");
+                        Clients.Client(room.User2.ConnectionId).startGame("SecondStep");
+                    }
+                    else
+                    {
+                        Clients.Client(room.User2.ConnectionId).startGame("FirstStep");
+                        Clients.Client(room.User1.ConnectionId).startGame("SecondStep");
                     }
                 }
             }
