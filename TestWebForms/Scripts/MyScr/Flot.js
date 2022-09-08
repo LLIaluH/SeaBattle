@@ -125,30 +125,28 @@ function ShotInCell(where, x, y, type) {
     var currShipsLoc;
     if (where == 1) {
         currCtxLoc = ctxMy;
-        ships = MyShips;
+        currShipsLoc = MyShips;
 
         //проверка на попадание по нашему кораблю
-        for (var i = 0; i < ships.length; i++) {
-            var item = ships[i];
+        for (var i = 0; i < currShipsLoc.length; i++) {
+            var item = currShipsLoc[i];
             if (item.pX == x && item.pY == y) {
                 item.TypeC = 2;
-                ClearAllCells(ctxMy);
-                PrintTarget();
-                PrintShips(ctxMy, ships);
-                //console.log(MyShips);
+                ClearAllCells(currCtxLoc);
+                PrintShips(currCtxLoc, currShipsLoc);
                 return false;
             }
         }
         //в остальных случаях добавляем ячейку с промахом
     } else {
         currCtxLoc = ctxEn;
-        ships = EnShips;
+        currShipsLoc = EnShips;
     }
     let pX = x;
     let pY = y;
-    ships.push({ pX, pY, TypeC: type });
-
-    PrintShips(currCtxLoc, ships);
+    currShipsLoc.push({ pX, pY, TypeC: type });
+    ClearAllCells(currCtxLoc);
+    PrintShips(currCtxLoc, currShipsLoc);
 }
 
 function PrintTarget() {
@@ -205,7 +203,10 @@ function InitGame() {
     GameStarted = true;
     b.disabled = true;
     b.hidden = true;
-    PrintTarget();    
+    PrintTarget();
+
+    ClearAllCells(ctxMy);
+    PrintShips(ctxMy, MyShips);
 }
 
 function ClearAllCells(ctx) {

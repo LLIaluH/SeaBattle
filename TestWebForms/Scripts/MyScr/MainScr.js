@@ -1,4 +1,5 @@
 ﻿window.onload = function () {
+    window.location.href = '/Rooms';
     var bgc = document.getElementById(body);
     sc1 = 50;
     sc2 = 1;

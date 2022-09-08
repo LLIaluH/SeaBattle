@@ -215,12 +215,29 @@ namespace TestWebForms.App
 
         public static bool SearchCell(int x, int y, List<Cell> cells)
         {
+            //var cell = cells.Find(c => c.pX == x && c.pY == y && c.TypeC == 1);
+            //if (cell != null)
+            //{
+            //    cell.TypeC = 2;
+            //    return true;
+            //}
             foreach (var cell in cells)
             {
                 if (cell.pX == x && cell.pY == y && cell.TypeC == 1)
                 {
+                    cell.TypeC = 2;
                     return true;
                 }
+            }
+            return false;
+        }
+
+        public static bool CheckWin(List<Cell> cells)
+        {
+            var cell = cells.FindAll(c => c.TypeC == 2);
+            if (cell != null && cell.Count == 20)
+            {
+                return true;
             }
             return false;
         }

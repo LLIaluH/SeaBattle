@@ -71,6 +71,20 @@ namespace TestWebForms.Hubs
             }
         }
 
+        private void CheckWin(Models.Room room)
+        {
+            if (RoomControl.CheckWin(room.User2.Cells))//победа первого пользователя
+            {
+                Clients.Client(room.User1.ConnectionId).win();
+                Clients.Client(room.User2.ConnectionId).loose();
+            }
+            else if (RoomControl.CheckWin(room.User1.Cells))//победа второго пользователя
+            {
+                Clients.Client(room.User1.ConnectionId).loose();
+                Clients.Client(room.User2.ConnectionId).win();
+            }
+        }
+
         public void Shot(int px, int py) 
         {
             var currUser = Storage.Container.Users.Find(x => x.ConnectionId == Context.ConnectionId);
@@ -82,6 +96,7 @@ namespace TestWebForms.Hubs
                 {
                     Clients.Caller.catchShot(2, px, py, 2);//Сообщить стреляющему о том, что он попал
                     Clients.Client(room.User2.ConnectionId).catchShot(1, px, py, 2);//сообщить оппоненту о попадании по его кораблю
+                    CheckWin(room);
                 }
                 else
                 {
@@ -96,6 +111,7 @@ namespace TestWebForms.Hubs
                 {
                     Clients.Caller.catchShot(2, px, py, 2);//Сообщить стреляющему о том, что он попал
                     Clients.Client(room.User1.ConnectionId).catchShot(1, px, py, 2);//сообщить оппоненту о попадании по его кораблю
+                    CheckWin(room);
                 }
                 else
                 {

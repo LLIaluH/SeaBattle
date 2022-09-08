@@ -21,10 +21,22 @@ $(function () {
             $('#readyEnemy').append('<p>Ход соперника!</p>');
         }
         GameStarted = true;
+        InitGame();
+        $('#readyMe').remove();
     }
 
     _SH.client.catchShot = function (where, x, y, type) {
         ShotInCell(where, x, y, type);
+    }
+
+    _SH.client.win = function () {
+        $('body').toggleClass('win');
+        alert('Вы победили');
+    }
+
+    _SH.client.loose = function () {
+        $('body').toggleClass('loose');
+        alert('Вы проиграли');
     }
 
     _SH.client.swichTurn = function (b) {
@@ -45,7 +57,7 @@ $(function () {
     }
 
     _SH.client.iAmReady = function (ready) {
-
+        $('#readyMe').append('<p>Ваш флот готов!</p>');
     }
 
     _SH.client.outRoomError = function (message) {

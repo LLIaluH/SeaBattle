@@ -60,6 +60,14 @@ textarea {
     color: red;
 }
 
+.win{
+    background-color:#b6ff00;
+}
+
+.loose {
+    background-color: #cc3636;
+}
+
 /* Safari */
 @-webkit-keyframes spin {
     0% {
