@@ -212,5 +212,17 @@ namespace TestWebForms.App
             }
             return false;
         }
+
+        public static bool SearchCell(int x, int y, List<Cell> cells)
+        {
+            foreach (var cell in cells)
+            {
+                if (cell.pX == x && cell.pY == y && cell.TypeC == 1)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

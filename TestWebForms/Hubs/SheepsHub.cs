@@ -29,6 +29,7 @@ namespace TestWebForms.Hubs
             else
             {
                 currUser.Ready = true;
+                currUser.Cells = Cells;
                 Clients.Caller.iAmReady();
                 var room = Container.Rooms.Find(x => x.User1 == currUser || x.User2 == currUser);
                 if (room != null)
@@ -54,17 +55,70 @@ namespace TestWebForms.Hubs
                 if (room.User1.Ready && room.User2.Ready)
                 {
                     Random r = new Random();
-                    if (r.Next(0, 2) == 1)
+                    if (r.Next(0, 2) == 0)
                     {
+                        room.Turn = 1;
                         Clients.Client(room.User1.ConnectionId).startGame("FirstStep");
                         Clients.Client(room.User2.ConnectionId).startGame("SecondStep");
                     }
                     else
                     {
-                        Clients.Client(room.User2.ConnectionId).startGame("FirstStep");
+                        room.Turn = 2;
                         Clients.Client(room.User1.ConnectionId).startGame("SecondStep");
+                        Clients.Client(room.User2.ConnectionId).startGame("FirstStep");
                     }
                 }
+            }
+        }
+
+        public void Shot(int px, int py) 
+        {
+            var currUser = Storage.Container.Users.Find(x => x.ConnectionId == Context.ConnectionId);
+            var room = Container.Rooms.Find(x => x.User1 == currUser || x.User2 == currUser);
+
+            if (currUser == room.User1 && room.Turn == 1)
+            {
+                if (RoomControl.SearchCell(px, py, room.User2.Cells))//попал
+                {
+                    Clients.Caller.catchShot(2, px, py, 2);//Сообщить стреляющему о том, что он попал
+                    Clients.Client(room.User2.ConnectionId).catchShot(1, px, py, 2);//сообщить оппоненту о попадании по его кораблю
+                }
+                else
+                {
+                    Clients.Caller.catchShot(2, px, py, 3);
+                    Clients.Client(room.User2.ConnectionId).catchShot(1, px, py, 3);//сообщить оппоненту о промахе
+                    SwitchTurn(room);
+                }
+            }
+            else if (currUser == room.User2 && room.Turn == 2)
+            {
+                if (RoomControl.SearchCell(px, py, room.User1.Cells))//попал
+                {
+                    Clients.Caller.catchShot(2, px, py, 2);//Сообщить стреляющему о том, что он попал
+                    Clients.Client(room.User1.ConnectionId).catchShot(1, px, py, 2);//сообщить оппоненту о попадании по его кораблю
+                }
+                else
+                {
+                    Clients.Caller.catchShot(2, px, py, 3);
+                    Clients.Client(room.User1.ConnectionId).catchShot(1, px, py, 3);//сообщить оппоненту о промахе
+                    SwitchTurn(room);
+                }
+            }
+        }
+
+        private void SwitchTurn(Models.Room room)
+        {
+            if (room.Turn == 2)
+            {
+                room.Turn = 1;
+                Clients.Client(room.User1.ConnectionId).swichTurn(true);
+                Clients.Client(room.User2.ConnectionId).swichTurn(false);
+            }
+            else
+            {
+                room.Turn = 2;
+                Clients.Client(room.User1.ConnectionId).swichTurn(false);
+                Clients.Client(room.User2.ConnectionId).swichTurn(true);
             }
         }
 

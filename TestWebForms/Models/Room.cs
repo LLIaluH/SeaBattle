@@ -12,6 +12,7 @@ namespace TestWebForms.Models
         public SheepsUser User1 { get; set; }
         public SheepsUser User2 { get; set; }
         public bool HasUser2 { get; set; }
+        public int Turn { get; set; }
 
         public Room(string nameNewRoom)
         {

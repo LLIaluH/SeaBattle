@@ -1,8 +1,8 @@
 ﻿var roomName;
 var userId;
-
+var _SH = $.connection.sheepsHub;
 $(function () {
-    var _SH = $.connection.sheepsHub;
+    
     roomName = (new URL(document.location)).searchParams.get("roomName");
     userId = (new URL(document.location)).searchParams.get("userId");
 
@@ -10,10 +10,38 @@ $(function () {
         alert("Соперник подключился!");
     }
 
+    _SH.client.startGame = function (step) {
+        if (step == 'FirstStep') {
+            MyTurn = true;
+            $('#readyEnemy').empty();
+            $('#readyEnemy').append('<p>Ваш ход!</p>')
+        } else {
+            $('#readyEnemy').empty();
+            $('#readyEnemy').toggleClass('enemyNoReady enemyReady');
+            $('#readyEnemy').append('<p>Ход соперника!</p>');
+        }
+        GameStarted = true;
+    }
+
+    _SH.client.catchShot = function (where, x, y, type) {
+        ShotInCell(where, x, y, type);
+    }
+
+    _SH.client.swichTurn = function (b) {
+        MyTurn = b;
+        $('#readyEnemy').empty();
+        $('#readyEnemy').toggleClass('enemyNoReady enemyReady');
+        if (b) {
+            $('#readyEnemy').append('<p>Ваш ход!</p>');
+        } else {
+            $('#readyEnemy').append('<p>Ход соперника!</p>');
+        }
+    }
+
     _SH.client.setEnemyIsReady = function () {
         $('#readyEnemy').empty();
         $('#readyEnemy').toggleClass('enemyNoReady enemyReady');
-        $('#readyEnemy').append('<p>Соперник готов к бою!</p>')
+        $('#readyEnemy').append('<p>Соперник готов к бою!</p>');
     }
 
     _SH.client.iAmReady = function (ready) {

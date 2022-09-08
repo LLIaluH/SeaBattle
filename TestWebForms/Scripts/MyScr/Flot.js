@@ -1,16 +1,20 @@
 ﻿var MyShips = [];
 var EnShips = [];
 
+var timerStop = false;
+
 var CountCells_X = 10;
 var CountCells_Y = 10;
 
 var GameStarted = false;
+var MyTurn = false;
 var WIDTH;
 var HEIGHT;
 var cellSize;
 var ctxMy;
 var ctxEn;
 var cell;
+var timerSec = 20;
 
 var nameRoom;
 var posTarget = {
@@ -59,11 +63,6 @@ function SetShip() {
     for (var i = 0; i < MyShips.length; i++) {
         var item = MyShips[i];
         if (item.pX == posTarget.x && item.pY == posTarget.y) {
-            //MyShips.forEach(function (item, i, arr) {
-            //    if (item.pX == posTarget.x && item.pY == posTarget.y) {
-            //        MyShips.splice(i, 1);
-            //    }
-            //})
             MyShips.splice(i, 1);
             ClearAllCells(ctxMy);
             PrintTarget();
@@ -79,7 +78,7 @@ function SetShip() {
     ClearAllCells(ctxMy);
     PrintTarget();
     PrintShips(ctxMy, MyShips);
-    console.log(MyShips);
+    //console.log(MyShips);
 }
 
 function MoveTarget(dir) {
@@ -113,6 +112,15 @@ function MoveTarget(dir) {
 }
 
 function ShotInCell(where, x, y, type) {
+    if (x < 0 || x > CountCells_X) {
+        return;
+    }
+    if (y < 0 || y > CountCells_Y) {
+        return;
+    }
+    if (type < 0 || type > 3) {
+        return;
+    }
     var currCtxLoc;
     var currShipsLoc;
     if (where == 1) {
@@ -125,21 +133,22 @@ function ShotInCell(where, x, y, type) {
             if (item.pX == x && item.pY == y) {
                 item.TypeC = 2;
                 ClearAllCells(ctxMy);
-                //PrintTarget();
+                PrintTarget();
                 PrintShips(ctxMy, ships);
-                console.log(MyShips);
+                //console.log(MyShips);
                 return false;
             }
         }
-        //в остальных случаях добавляем ячейка с промахом
+        //в остальных случаях добавляем ячейку с промахом
     } else {
         currCtxLoc = ctxEn;
-        currCtxLoc = EnShips;
+        ships = EnShips;
     }
+    let pX = x;
+    let pY = y;
+    ships.push({ pX, pY, TypeC: type });
 
-    ships.push({ pX, pY, TypeC: type});
-
-    PrintShips(currCtxLoc,);
+    PrintShips(currCtxLoc, ships);
 }
 
 function PrintTarget() {
@@ -176,7 +185,7 @@ function AddEvent() {
                 break;
             case 32: // Space
                 if (GameStarted && MyTurn) {
-                    //Shoot();
+                    _SH.server.shot(posTarget.x, posTarget.y);
                 } else {
                     SetShip();
                 }
@@ -238,7 +247,7 @@ function GetCurrentShips() {
 function GetColorShip(item) {
     switch (item.TypeC) {
         case 1:
-            return "rgb(40,200,40)";
+            return "rgb(40,160,40)";
             break;
         case 2:
             return "rgb(200,40,40)";
@@ -299,4 +308,29 @@ function CheckError(json) {
     if (json.error != "" && json.error != undefined) {
         alert(json.error);
     }
+}
+
+async function EnTimer(sec) {
+    return new Promise(res => {
+        setInterval(() => {
+            if (sec == 0 || timerStop) {
+                return;
+            }
+            $('#readyEnemy').empty();
+            $('#readyEnemy').append('<p>Ход соперника (' + --sec + ')</p>')
+        }, 1000);
+    });
+}
+
+async function MyTimer(sec) {
+
+    return new Promise(res => {
+        setInterval(() => {
+            if (sec == 0 || timerStop) {
+                return;
+            }
+            $('#readyEnemy').empty();
+            $('#readyEnemy').append('<p>Ваш ход (' + --sec + ')</p>')
+        }, 1000);
+    });
 }
