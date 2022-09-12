@@ -1,5 +1,4 @@
-﻿
-function StartSpiner(Parent) {
+﻿function StartSpiner(Parent) {
     StopSpiner(Parent);
     var spiner = $("#" + Parent).append('<div class="loader"></div>')
     return spiner;
@@ -38,6 +37,11 @@ function FillGrid(nameGrd, data, fn, params) {
         options = Object.assign(options, params);
     }
     var table = new Tabulator(nameGrd, options);
+    table.on("rowSelectionChanged", function (data, rows) {
+        if (rows.length > 0) {
+            fn(nameGrd, data[0]);
+        }
+    });
     return table;
 }
 

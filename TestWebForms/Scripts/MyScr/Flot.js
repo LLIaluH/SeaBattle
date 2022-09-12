@@ -184,7 +184,7 @@ function AddEvent() {
             case 32: // Space
                 if (GameStarted && MyTurn) {
                     _SH.server.shot(posTarget.x, posTarget.y);
-                } else {
+                } else if (!GameStarted){
                     SetShip();
                 }
                 break;
